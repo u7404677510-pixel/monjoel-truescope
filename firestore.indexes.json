@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "interventions_validees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "categorie", "order": "ASCENDING" },
+        { "fieldPath": "date_validation", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "interventions_en_attente",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "statut", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

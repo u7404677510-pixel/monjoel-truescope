@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public read for grille_tarifaire (needed by Cloud Functions)
+    match /grille_tarifaire/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Anyone can create a pending intervention, only admin can read/update
+    match /interventions_en_attente/{doc} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // Only admin
+    match /interventions_validees/{doc} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
