@@ -87,10 +87,14 @@ export function ClientForm() {
       let compressedFile: File | null = null;
 
       if (formData.photo) {
-        const result = await compressPhoto(formData.photo);
-        photoBase64 = result.base64;
-        photoMimeType = result.mimeType;
-        compressedFile = result.compressed;
+        try {
+          const result = await compressPhoto(formData.photo);
+          photoBase64 = result.base64;
+          photoMimeType = result.mimeType;
+          compressedFile = result.compressed;
+        } catch (compressErr) {
+          console.warn("Photo compression failed, continuing without photo:", compressErr);
+        }
       }
 
       const [reponseIA, photo_url] = await Promise.all([

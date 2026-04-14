@@ -100,7 +100,7 @@ export async function analyzeIntervention(params: AnalyzeRequest): Promise<Repon
     return applyDemoMajoration(DEMO_RESPONSES[params.categorie]);
   }
 
-  const fn = httpsCallable<AnalyzeRequest, ReponseIA>(functions, "analyzeIntervention");
+  const fn = httpsCallable<AnalyzeRequest, ReponseIA>(functions, "analyzeIntervention", { timeout: 120000 });
   const result = await fn(params);
   return result.data;
 }
