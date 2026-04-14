@@ -1,5 +1,9 @@
 {
   "rewrites": [
-    { "source": "/app/truescope/(.*)", "destination": "/app/truescope/index.html" }
+    { "source": "/app/truescope/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/app/truescope/logo-joel.svg", "destination": "/logo-joel.svg" },
+    { "source": "/app/truescope/logo-joel.png", "destination": "/logo-joel.png" },
+    { "source": "/app/truescope", "destination": "/index.html" },
+    { "source": "/app/truescope/:path*", "destination": "/index.html" }
   ]
 }
