@@ -31,11 +31,11 @@ function formatDate(date: Date | { toDate: () => Date } | undefined): string {
 }
 
 function toRow(intervention: Intervention | InterventionValidee, statut: string): TableRow {
-  const data = intervention as Record<string, unknown>;
+  const data = intervention as unknown as Record<string, unknown>;
   const contact = (data.contact as { nom?: string; prenom?: string; adresse?: string }) ?? {};
 
   const reponses = Object.entries(intervention.reponses_clarification || {})
-    .map(([q, a]) => `${a}`)
+    .map(([, a]) => `${a}`)
     .join(" · ");
 
   const prestations = intervention.reponse_ia.lignes_devis
