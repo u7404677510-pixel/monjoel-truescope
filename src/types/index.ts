@@ -31,6 +31,8 @@ export interface ContactInfo {
   nom: string;
   prenom: string;
   adresse: string;
+  code_postal: string;
+  ville: string;
 }
 
 export interface Intervention {

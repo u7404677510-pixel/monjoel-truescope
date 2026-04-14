@@ -53,7 +53,7 @@ export async function saveIntervention(data: {
   description_client: string;
   photo_url: string;
   reponses_clarification: Record<string, string>;
-  contact?: { nom: string; prenom: string; adresse: string };
+  contact?: { nom: string; prenom: string; adresse: string; code_postal: string; ville: string };
   reponse_ia: ReponseIA;
 }): Promise<string> {
   if (!isFirebaseConfigured || !db) {

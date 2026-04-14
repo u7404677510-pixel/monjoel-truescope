@@ -682,6 +682,11 @@ body::before {
   margin-top: 24px;
 }
 .qcm-field { position: relative; }
+.qcm-field-row {
+  display: flex;
+  gap: 12px;
+}
+.qcm-field-grow { flex: 1; }
 .qcm-input {
   width: 100%;
   padding: 16px 18px;

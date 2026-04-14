@@ -129,7 +129,7 @@ export function StepPhoto({ initialPhoto, initialPreview, onNext, onBack }: Prop
           ← Retour
         </button>
         <button className="btn btn-primary" onClick={handleNext} type="button">
-          Analyser avec Joël <span className="btn-arrow">→</span>
+          Continuer <span className="btn-arrow">→</span>
         </button>
       </div>
     </>

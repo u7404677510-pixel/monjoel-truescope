@@ -1,21 +1,16 @@
 import { useState } from "react";
-import type { Categorie, ReponseIA } from "../types";
+import type { Categorie, ContactInfo, ReponseIA } from "../types";
 import { StepCategory } from "../components/client/StepCategory";
-import { StepDescription } from "../components/client/StepDescription";
 import { StepQuestions } from "../components/client/StepQuestions";
 import { StepPhoto } from "../components/client/StepPhoto";
+import { StepDescription } from "../components/client/StepDescription";
+import { StepContact } from "../components/client/StepContact";
 import { ResultPage } from "../components/client/ResultPage";
 import { analyzeIntervention } from "../lib/gemini";
 import { saveIntervention } from "../lib/firestore";
 import { compressAndUploadPhoto } from "../lib/storage";
 
-type Step = "category" | "description" | "questions" | "photo" | "analyzing" | "result" | "error";
-
-interface ContactInfo {
-  nom: string;
-  prenom: string;
-  adresse: string;
-}
+type Step = "category" | "questions" | "photo" | "description" | "contact" | "analyzing" | "result" | "error";
 
 interface FormData {
   categorie: Categorie | null;
@@ -27,22 +22,24 @@ interface FormData {
   photoPreview: string | null;
 }
 
-const STEP_LABELS = ["Catégorie", "Description", "Questions", "Photo"];
+const STEP_LABELS = ["Catégorie", "Questions", "Photo", "Description", "Coordonnées"];
 const STEP_INDEX: Record<Step, number> = {
   category: 0,
-  description: 1,
-  questions: 2,
-  photo: 3,
-  analyzing: 4,
-  result: 4,
-  error: 4,
+  questions: 1,
+  photo: 2,
+  description: 3,
+  contact: 4,
+  analyzing: 5,
+  result: 5,
+  error: 5,
 };
 
 const CARD_TITLES: Record<string, { title: string; subtitle: string }> = {
   category: { title: "Quel est votre problème ?", subtitle: "Sélectionnez une catégorie et décrivez la situation" },
-  description: { title: "Décrivez la situation", subtitle: "Plus de détails nous aident à mieux diagnostiquer" },
   questions: { title: "Quelques précisions", subtitle: "Ces infos permettent un devis plus précis" },
   photo: { title: "Photo du problème", subtitle: "Une image aide l'IA à mieux analyser" },
+  description: { title: "Décrivez la situation", subtitle: "Plus de détails nous aident à mieux diagnostiquer" },
+  contact: { title: "Vos coordonnées", subtitle: "Pour que Joël puisse vous recontacter" },
 };
 
 export function ClientForm() {
@@ -52,7 +49,7 @@ export function ClientForm() {
     description: "",
     questions: [],
     reponses: {},
-    contact: { nom: "", prenom: "", adresse: "" },
+    contact: { nom: "", prenom: "", adresse: "", code_postal: "", ville: "" },
     photo: null,
     photoPreview: null,
   });
@@ -61,21 +58,26 @@ export function ClientForm() {
 
   const handleCategorySelect = (categorie: Categorie) => {
     setFormData((prev) => ({ ...prev, categorie }));
+    setStep("questions");
+  };
+
+  const handleQuestionsNext = (reponses: Record<string, string>, questions: string[]) => {
+    setFormData((prev) => ({ ...prev, reponses, questions }));
+    setStep("photo");
+  };
+
+  const handlePhotoNext = (photo: File, photoPreview: string) => {
+    setFormData((prev) => ({ ...prev, photo, photoPreview }));
     setStep("description");
   };
 
   const handleDescriptionNext = (description: string) => {
     setFormData((prev) => ({ ...prev, description }));
-    setStep("questions");
+    setStep("contact");
   };
 
-  const handleQuestionsNext = (reponses: Record<string, string>, questions: string[], contact: ContactInfo) => {
-    setFormData((prev) => ({ ...prev, reponses, questions, contact }));
-    setStep("photo");
-  };
-
-  const handlePhotoNext = async (photo: File, photoPreview: string) => {
-    setFormData((prev) => ({ ...prev, photo, photoPreview }));
+  const handleContactNext = async (contact: ContactInfo) => {
+    setFormData((prev) => ({ ...prev, contact }));
     setStep("analyzing");
     setAnalyzeError("");
 
@@ -84,13 +86,15 @@ export function ClientForm() {
       let photoBase64 = "";
       let photoMimeType = "";
 
-      try {
-        const uploaded = await compressAndUploadPhoto(photo);
-        photo_url = uploaded.url;
-        photoBase64 = uploaded.base64;
-        photoMimeType = uploaded.mimeType;
-      } catch (uploadErr) {
-        console.warn("Photo upload failed, continuing without photo:", uploadErr);
+      if (formData.photo) {
+        try {
+          const uploaded = await compressAndUploadPhoto(formData.photo);
+          photo_url = uploaded.url;
+          photoBase64 = uploaded.base64;
+          photoMimeType = uploaded.mimeType;
+        } catch (uploadErr) {
+          console.warn("Photo upload failed, continuing without photo:", uploadErr);
+        }
       }
 
       const reponseIA = await analyzeIntervention({
@@ -106,7 +110,7 @@ export function ClientForm() {
         description_client: formData.description,
         photo_url,
         reponses_clarification: formData.reponses,
-        contact: formData.contact,
+        contact,
         reponse_ia: reponseIA,
       });
 
@@ -120,7 +124,7 @@ export function ClientForm() {
   };
 
   const reset = () => {
-    setFormData({ categorie: null, description: "", questions: [], reponses: {}, contact: { nom: "", prenom: "", adresse: "" }, photo: null, photoPreview: null });
+    setFormData({ categorie: null, description: "", questions: [], reponses: {}, contact: { nom: "", prenom: "", adresse: "", code_postal: "", ville: "" }, photo: null, photoPreview: null });
     setResult(null);
     setAnalyzeError("");
     setStep("category");
@@ -178,20 +182,11 @@ export function ClientForm() {
             <div className="card-body">
               {step === "category" && <StepCategory onSelect={handleCategorySelect} />}
 
-              {step === "description" && formData.categorie && (
-                <StepDescription
-                  categorie={formData.categorie}
-                  initialValue={formData.description}
-                  onNext={handleDescriptionNext}
-                  onBack={() => setStep("category")}
-                />
-              )}
-
               {step === "questions" && formData.categorie && (
                 <StepQuestions
                   categorie={formData.categorie}
                   onNext={handleQuestionsNext}
-                  onBack={() => setStep("description")}
+                  onBack={() => setStep("category")}
                 />
               )}
 
@@ -201,6 +196,22 @@ export function ClientForm() {
                   initialPreview={formData.photoPreview}
                   onNext={handlePhotoNext}
                   onBack={() => setStep("questions")}
+                />
+              )}
+
+              {step === "description" && formData.categorie && (
+                <StepDescription
+                  categorie={formData.categorie}
+                  initialValue={formData.description}
+                  onNext={handleDescriptionNext}
+                  onBack={() => setStep("photo")}
+                />
+              )}
+
+              {step === "contact" && (
+                <StepContact
+                  onNext={handleContactNext}
+                  onBack={() => setStep("description")}
                 />
               )}
             </div>
@@ -229,7 +240,7 @@ export function ClientForm() {
                 <div className="error-icon">⚠️</div>
                 <h2>Une erreur s'est produite</h2>
                 <p>{analyzeError}</p>
-                <button className="btn btn-primary" onClick={() => setStep("photo")} type="button">
+                <button className="btn btn-primary" onClick={() => setStep("contact")} type="button">
                   ← Réessayer
                 </button>
               </div>
