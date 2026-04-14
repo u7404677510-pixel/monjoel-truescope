@@ -12,7 +12,7 @@ const CATEGORY_LABELS: Record<Categorie, string> = {
   electricite: "Électricité",
 };
 
-const JOEL_PHONE = "tel:+33600000000";
+const JOEL_PHONE = "tel:+33141691008";
 
 export function ResultPage({ reponseIA, categorie, onReset }: Props) {
   const { phrase_choc, lignes_devis, prix_total, majoration } = reponseIA;
