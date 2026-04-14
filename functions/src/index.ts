@@ -9,7 +9,7 @@ const db = admin.firestore();
 
 setGlobalOptions({ region: "europe-west1", maxInstances: 10 });
 
-const MODEL = "gemini-2.5-flash";
+const MODEL = "gemini-2.0-flash";
 
 const geminiApiKeySecret = defineSecret("GEMINI_API_KEY");
 
@@ -181,7 +181,7 @@ export const analyzeIntervention = onCall<AnalyzeRequest>(
 
     let examples: InterventionValidee[] = [];
     try {
-      examples = await fetchValidatedExamples(categorie, 15);
+      examples = await fetchValidatedExamples(categorie, 5);
     } catch {
       // Index composite en cours de construction ou collection vide
     }

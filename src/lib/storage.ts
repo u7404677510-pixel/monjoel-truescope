@@ -6,19 +6,21 @@ const isFirebaseConfigured =
   import.meta.env.VITE_FIREBASE_API_KEY &&
   import.meta.env.VITE_FIREBASE_API_KEY !== "your-api-key";
 
-export async function compressAndUploadPhoto(file: File): Promise<{ url: string; base64: string; mimeType: string }> {
+export async function compressPhoto(file: File): Promise<{ compressed: File; base64: string; mimeType: string }> {
   const compressed = await imageCompression(file, {
-    maxSizeMB: 1,
-    maxWidthOrHeight: 1920,
+    maxSizeMB: 0.5,
+    maxWidthOrHeight: 1024,
     useWebWorker: true,
   });
 
   const base64 = await fileToBase64(compressed);
+  return { compressed, base64, mimeType: compressed.type };
+}
 
+export async function uploadPhoto(compressed: File): Promise<string> {
   if (!isFirebaseConfigured || !storage) {
-    // Mode demo : retourner un data URL au lieu d'uploader sur Firebase Storage
-    const dataUrl = `data:${compressed.type};base64,${base64}`;
-    return { url: dataUrl, base64, mimeType: compressed.type };
+    const base64 = await fileToBase64(compressed);
+    return `data:${compressed.type};base64,${base64}`;
   }
 
   const timestamp = Date.now();
@@ -29,9 +31,7 @@ export async function compressAndUploadPhoto(file: File): Promise<{ url: string;
     contentType: compressed.type,
   });
 
-  const url = await getDownloadURL(storageRef);
-
-  return { url, base64, mimeType: compressed.type };
+  return await getDownloadURL(storageRef);
 }
 
 function fileToBase64(file: File): Promise<string> {
@@ -39,7 +39,6 @@ function fileToBase64(file: File): Promise<string> {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      // Retirer le prefixe data URL (data:image/jpeg;base64,)
       const base64 = result.split(",")[1];
       resolve(base64);
     };

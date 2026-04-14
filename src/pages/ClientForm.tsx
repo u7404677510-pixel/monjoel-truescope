@@ -8,7 +8,7 @@ import { StepContact } from "../components/client/StepContact";
 import { ResultPage } from "../components/client/ResultPage";
 import { analyzeIntervention } from "../lib/gemini";
 import { saveIntervention } from "../lib/firestore";
-import { compressAndUploadPhoto } from "../lib/storage";
+import { compressPhoto, uploadPhoto } from "../lib/storage";
 
 type Step = "category" | "questions" | "photo" | "description" | "contact" | "analyzing" | "result" | "error";
 
@@ -82,28 +82,29 @@ export function ClientForm() {
     setAnalyzeError("");
 
     try {
-      let photo_url = "";
       let photoBase64 = "";
       let photoMimeType = "";
+      let compressedFile: File | null = null;
 
       if (formData.photo) {
-        try {
-          const uploaded = await compressAndUploadPhoto(formData.photo);
-          photo_url = uploaded.url;
-          photoBase64 = uploaded.base64;
-          photoMimeType = uploaded.mimeType;
-        } catch (uploadErr) {
-          console.warn("Photo upload failed, continuing without photo:", uploadErr);
-        }
+        const result = await compressPhoto(formData.photo);
+        photoBase64 = result.base64;
+        photoMimeType = result.mimeType;
+        compressedFile = result.compressed;
       }
 
-      const reponseIA = await analyzeIntervention({
-        categorie: formData.categorie!,
-        description: formData.description,
-        reponses: formData.reponses,
-        photoBase64,
-        photoMimeType,
-      });
+      const [reponseIA, photo_url] = await Promise.all([
+        analyzeIntervention({
+          categorie: formData.categorie!,
+          description: formData.description,
+          reponses: formData.reponses,
+          photoBase64,
+          photoMimeType,
+        }),
+        compressedFile
+          ? uploadPhoto(compressedFile).catch(() => "")
+          : Promise.resolve(""),
+      ]);
 
       await saveIntervention({
         categorie: formData.categorie!,
