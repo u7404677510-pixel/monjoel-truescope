@@ -18,7 +18,7 @@ function BackgroundBlobs() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter basename="/truescope">
+      <BrowserRouter basename="/app/truescope">
         <BackgroundBlobs />
         <div className="app-wrapper">
           <Routes>

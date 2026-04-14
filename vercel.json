@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/truescope/(.*)", "destination": "/truescope/index.html" }
+    { "source": "/app/truescope/(.*)", "destination": "/app/truescope/index.html" }
   ]
 }
