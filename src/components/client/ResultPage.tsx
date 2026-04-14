@@ -54,9 +54,6 @@ export function ResultPage({ reponseIA, categorie, onReset }: Props) {
           </div>
         )}
 
-        <p className="devis-note">
-          * Devis indicatif. Le prix définitif est établi après diagnostic sur place.
-        </p>
       </div>
 
       {/* CTA */}
